@@ -1,3 +1,6 @@
+# ATENCAO: nunca adicione subscription_id ou qualquer secret neste arquivo.
+# Use: export ARM_SUBSCRIPTION_ID="..." ou crie terraform/secret.tfvars (ignorado pelo git)
+
 location                     = "brazilsouth"
 environment                  = "lab"
 project                      = "hybrid-lab"
