@@ -10,7 +10,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "rg-terraform-state"
-    storage_account_name = "stterraformstatelab"
+    storage_account_name = "stterraformstatebc01"
     container_name       = "tfstate"
     key                  = "hybrid-lab.tfstate"
   }
