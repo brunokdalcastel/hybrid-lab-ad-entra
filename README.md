@@ -179,7 +179,6 @@ terraform apply
 | 4 | CLIENT-01 + GPOs + Validação | Concluída |
 | 5 | Infraestrutura Azure Base (Terraform) | Concluída |
 | 6 | VM AADC + Entra Connect v2 (Password Hash Sync) | Pendente |
-| 7+ | pfSense, VPN S2S, Conditional Access, ASR/DR | Futuro |
 
 ## Tecnologias
 
