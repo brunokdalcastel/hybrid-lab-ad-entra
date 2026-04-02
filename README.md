@@ -153,8 +153,8 @@ terraform/
 ```bash
 # 1. Criar backend remoto (uma vez)
 az group create --name rg-terraform-state --location brazilsouth
-az storage account create --name stterraformstatelab --resource-group rg-terraform-state --location brazilsouth --sku Standard_LRS
-az storage container create --name tfstate --account-name stterraformstatelab
+az storage account create --name stterraformstatebc01 --resource-group rg-terraform-state --location brazilsouth --sku Standard_LRS
+az storage container create --name tfstate --account-name stterraformstatebc01
 
 # 2. Deploy
 cd terraform
@@ -163,11 +163,9 @@ terraform plan
 terraform apply
 ```
 
-**Verificação de domínio no Entra ID (manual):**
-1. Portal Entra ID → Custom domain names → Add `brunocastel.com.br`
-2. Copiar registro TXT (`MS=msXXXXXXXX`)
-3. Criar registro TXT no DNS da Hostinger
-4. Verificar no Entra ID
+**Verificação de domínio no Entra ID:** Concluída
+- Domínio `brunocastel.com.br` adicionado e verificado no Entra ID
+- Registro TXT configurado no DNS da Hostinger
 
 ---
 
@@ -204,7 +202,6 @@ hybrid-lab-ad-entra/
 ├── docs/
 │   └── screenshots/
 ├── project-guide.md
-├── CLAUDE.md
 └── README.md
 ```
 
