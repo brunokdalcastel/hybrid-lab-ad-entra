@@ -6,32 +6,44 @@ Projeto criado para portfólio, demonstrando competências em infraestrutura Win
 
 ## Arquitetura
 
-```
-On-Premises (Hyper-V)                      Azure (brazilsouth)
-┌────────────────────────────────────┐     ┌────────────────────────────────┐
-│  Internal vSwitch + NAT            │     │  rg-hybrid-lab                 │
-│  Subnet: 10.0.0.0/24               │     │                                │
-│  Gateway: 10.0.0.2                 │     │  ┌──────────────────────────┐  │
-│                                    │     │  │ vnet-hub-lab             │  │
-│  ┌───────────┐   ┌───────────┐     │     │  │ 10.1.0.0/16              │  │
-│  │  DC-01    │   │ CLIENT-01 │     │     │  │  ┌────────────────────┐  │  │
-│  │ .10       │   │ DHCP      │     │     │  │  │ snet-default       │  │  │
-│  │ Win 2019  │   │ Win 11    │     │     │  │  │ 10.1.1.0/24        │  │  │
-│  │ AD/DNS/   │   │ Domain-   │     │     │  │  └────────────────────┘  │  │
-│  │ DHCP/File │   │ joined    │     │     │  └──────────────────────────┘  │
-│  └───────────┘   └───────────┘     │     │  nsg-hub-lab                   │
-│                                    │     │  rt-hub-lab                    │
-│  ┌───────────┐                     │     │  log-hybrid-lab                │
-│  │ SYNC-01   │                     │     │                                │
-│  │ .20       │───── HTTPS 443 ─────┼────►│  Entra ID                      │
-│  │ Entra     │                     │     │  (Password Hash Sync           │
-│  │ Connect   │                     │     │   + Seamless SSO)              │
-│  └───────────┘                     │     │                                │
-└────────────────────────────────────┘     └────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph OnPrem["🏢 On-Premises (Hyper-V)"]
+        direction TB
+        subgraph Net["Internal vSwitch + NAT — 10.0.0.0/24"]
+            DC["🖥️ DC-01<br/>10.0.0.10<br/>Win Server 2019<br/>AD DS / DNS / DHCP / File"]
+            CLIENT["💻 CLIENT-01<br/>DHCP<br/>Win 11 Enterprise<br/>Domain-joined"]
+            SYNC["🔄 SYNC-01<br/>10.0.0.20<br/>Win Server 2019<br/>Entra Connect v2"]
+        end
+    end
 
-Domínio AD: lab.brunocastel.com.br (NetBIOS: LAB)
-Domínio Entra ID: brunocastel.com.br
+    subgraph Azure["☁️ Azure (brazilsouth) — rg-hybrid-lab"]
+        direction TB
+        subgraph VNET["vnet-hub-lab — 10.1.0.0/16"]
+            SUBNET["snet-default<br/>10.1.1.0/24"]
+        end
+        NSG["🛡️ nsg-hub-lab"]
+        RT["🛣️ rt-hub-lab"]
+        LOG["📊 log-hybrid-lab"]
+        ENTRA["🆔 Entra ID<br/>brunocastel.com.br<br/>Password Hash Sync<br/>+ Seamless SSO"]
+    end
+
+    DC -.->|"autentica"| CLIENT
+    SYNC -->|"HTTPS 443<br/>sync"| ENTRA
+    NSG -.- SUBNET
+    RT -.- SUBNET
+
+    classDef onprem fill:#e1f5ff,stroke:#0078d4,stroke-width:2px,color:#000
+    classDef azure fill:#fff4e1,stroke:#ff8c00,stroke-width:2px,color:#000
+    classDef entra fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    class DC,CLIENT,SYNC onprem
+    class SUBNET,NSG,RT,LOG azure
+    class ENTRA entra
 ```
+
+**Domínios:**
+- AD on-prem: `lab.brunocastel.com.br` (NetBIOS: `LAB`)
+- Entra ID: `brunocastel.com.br`
 
 ## Fases do Projeto
 
