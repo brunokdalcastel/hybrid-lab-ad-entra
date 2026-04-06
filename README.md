@@ -8,34 +8,43 @@ Projeto criado para portfólio, demonstrando competências em infraestrutura Win
 
 ```mermaid
 flowchart LR
-    subgraph OnPrem["🏢 On-Premises (Hyper-V)"]
+    subgraph OnPrem["🏢 On-Premises — Hyper-V (10.0.0.0/24)"]
         direction TB
-        subgraph Net["Internal vSwitch + NAT — 10.0.0.0/24"]
-            DC["🖥️ DC-01<br/>10.0.0.10<br/>Win Server 2019<br/>AD DS / DNS / DHCP / File"]
-            CLIENT["💻 CLIENT-01<br/>DHCP<br/>Win 11 Enterprise<br/>Domain-joined"]
-            SYNC["🔄 SYNC-01<br/>10.0.0.20<br/>Win Server 2019<br/>Entra Connect v2"]
-        end
+        DC["🖥️ <b>DC-01</b><br/>10.0.0.10 · Win Server 2019<br/>AD DS · DNS · DHCP · File Server"]
+        CLIENT["💻 <b>CLIENT-01</b><br/>DHCP · Win 11 Enterprise<br/>Domain-joined"]
+        SYNC["🔄 <b>SYNC-01</b><br/>10.0.0.20 · Win Server 2019<br/>Entra Connect v2"]
+
+        CLIENT -->|"Kerberos / LDAP<br/>logon · GPO · DNS"| DC
+        SYNC -->|"LDAP<br/>lê objetos AD"| DC
     end
 
-    subgraph Azure["☁️ Azure (brazilsouth) — rg-hybrid-lab"]
+    subgraph Cloud["☁️ Microsoft Cloud"]
         direction TB
-        subgraph VNET["vnet-hub-lab — 10.1.0.0/16"]
-            SUBNET["snet-default<br/>10.1.1.0/24"]
+        ENTRA["🆔 <b>Entra ID</b><br/>tenant: brunocastel.com.br<br/>Password Hash Sync<br/>+ Seamless SSO"]
+
+        subgraph Sub["Azure Subscription · brazilsouth"]
+            direction TB
+            subgraph RG["📦 rg-hybrid-lab"]
+                direction TB
+                subgraph VNET["🌐 vnet-hub-lab · 10.1.0.0/16"]
+                    SUBNET["snet-default<br/>10.1.1.0/24"]
+                end
+                NSG["🛡️ nsg-hub-lab"]
+                RT["🛣️ rt-hub-lab"]
+                LOG["📊 log-hybrid-lab"]
+            end
         end
-        NSG["🛡️ nsg-hub-lab"]
-        RT["🛣️ rt-hub-lab"]
-        LOG["📊 log-hybrid-lab"]
-        ENTRA["🆔 Entra ID<br/>brunocastel.com.br<br/>Password Hash Sync<br/>+ Seamless SSO"]
+
+        NSG -.-|"associado"| SUBNET
+        RT -.-|"associado"| SUBNET
     end
 
-    DC -.->|"autentica"| CLIENT
-    SYNC -->|"HTTPS 443<br/>sync"| ENTRA
-    NSG -.- SUBNET
-    RT -.- SUBNET
+    SYNC ==>|"<b>HTTPS 443</b><br/>sync de identidades<br/>(hashes de senha)"| ENTRA
+    CLIENT -.->|"SSO transparente<br/>(futuro: SaaS apps)"| ENTRA
 
-    classDef onprem fill:#e1f5ff,stroke:#0078d4,stroke-width:2px,color:#000
-    classDef azure fill:#fff4e1,stroke:#ff8c00,stroke-width:2px,color:#000
-    classDef entra fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef onprem fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000
+    classDef azure fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000
+    classDef entra fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px,color:#000
     class DC,CLIENT,SYNC onprem
     class SUBNET,NSG,RT,LOG azure
     class ENTRA entra
