@@ -7,27 +7,27 @@ Projeto criado para portfólio, demonstrando competências em infraestrutura Win
 ## Arquitetura
 
 ```
-On-Premises (Hyper-V)                          Azure (brazilsouth)
-┌─────────────────────────────────┐            ┌───────────────────────────────┐
-│  Internal vSwitch + NAT         │            │  rg-hybrid-lab                │
-│  Subnet: 10.0.0.0/24           │            │                               │
-│  Gateway: 10.0.0.2             │            │  ┌───────────────────────┐    │
-│                                 │            │  │ vnet-hub-lab          │    │
-│  ┌───────────┐  ┌───────────┐  │  (futuro)  │  │ 10.1.0.0/16          │    │
-│  │  DC-01    │  │ CLIENT-01 │  │  VPN S2S   │  │  ┌─────────────────┐ │    │
-│  │ .10       │  │ DHCP      │  │ ─────────► │  │  │ snet-default    │ │    │
-│  │ Win 2019  │  │ Win 11    │  │            │  │  │ 10.1.1.0/24     │ │    │
-│  │ AD/DNS/   │  │ Domain-   │  │            │  │  └─────────────────┘ │    │
-│  │ DHCP/File │  │ joined    │  │            │  └───────────────────────┘    │
-│  └───────────┘  └───────────┘  │            │  nsg-hub-lab                  │
-│                                 │            │  rt-hub-lab                   │
-│         ┌───────────┐          │            │  log-hybrid-lab               │
-│         │ SYNC-01   │──── 443 ────► Entra ID │
-│         │ .20       │          │    (Password Hash Sync
-│         │ Entra     │          │     + Seamless SSO)
-│         │ Connect   │          │
-│         └───────────┘          │            └───────────────────────────────┘
-└─────────────────────────────────┘
+On-Premises (Hyper-V)                      Azure (brazilsouth)
+┌────────────────────────────────────┐     ┌────────────────────────────────┐
+│  Internal vSwitch + NAT            │     │  rg-hybrid-lab                 │
+│  Subnet: 10.0.0.0/24               │     │                                │
+│  Gateway: 10.0.0.2                 │     │  ┌──────────────────────────┐  │
+│                                    │     │  │ vnet-hub-lab             │  │
+│  ┌───────────┐   ┌───────────┐     │     │  │ 10.1.0.0/16              │  │
+│  │  DC-01    │   │ CLIENT-01 │     │     │  │  ┌────────────────────┐  │  │
+│  │ .10       │   │ DHCP      │     │     │  │  │ snet-default       │  │  │
+│  │ Win 2019  │   │ Win 11    │     │     │  │  │ 10.1.1.0/24        │  │  │
+│  │ AD/DNS/   │   │ Domain-   │     │     │  │  └────────────────────┘  │  │
+│  │ DHCP/File │   │ joined    │     │     │  └──────────────────────────┘  │
+│  └───────────┘   └───────────┘     │     │  nsg-hub-lab                   │
+│                                    │     │  rt-hub-lab                    │
+│  ┌───────────┐                     │     │  log-hybrid-lab                │
+│  │ SYNC-01   │                     │     │                                │
+│  │ .20       │───── HTTPS 443 ─────┼────►│  Entra ID                      │
+│  │ Entra     │                     │     │  (Password Hash Sync           │
+│  │ Connect   │                     │     │   + Seamless SSO)              │
+│  └───────────┘                     │     │                                │
+└────────────────────────────────────┘     └────────────────────────────────┘
 
 Domínio AD: lab.brunocastel.com.br (NetBIOS: LAB)
 Domínio Entra ID: brunocastel.com.br
