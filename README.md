@@ -22,9 +22,11 @@ On-Premises (Hyper-V)                          Azure (brazilsouth)
 │  └───────────┘  └───────────┘  │            │  nsg-hub-lab                  │
 │                                 │            │  rt-hub-lab                   │
 │         ┌───────────┐          │            │  log-hybrid-lab               │
-│         │  AADC     │          │            │                               │
-│         │ (Fase 6)  │          │            └───────────────────────────────┘
-│         └───────────┘          │
+│         │ SYNC-01   │──── 443 ────► Entra ID │
+│         │ .20       │          │    (Password Hash Sync
+│         │ Entra     │          │     + Seamless SSO)
+│         │ Connect   │          │
+│         └───────────┘          │            └───────────────────────────────┘
 └─────────────────────────────────┘
 
 Domínio AD: lab.brunocastel.com.br (NetBIOS: LAB)
@@ -169,6 +171,44 @@ terraform apply
 
 ---
 
+### Fase 6 — Entra Connect + Hybrid Identity
+
+Configuração da sincronização de identidades on-premises para o Entra ID via Entra Connect v2.
+
+| Item | Detalhe |
+|------|---------|
+| VM | SYNC-01 — Windows Server 2019, 2 GB RAM, IP 10.0.0.20 |
+| Entra Connect | v2 — instalação customizada |
+| Sign-in method | Password Hash Synchronization |
+| SSO | Seamless SSO habilitado |
+| Source anchor | ms-DS-ConsistencyGuid |
+| Filtragem | Apenas OU "Usuarios" |
+| UPN no cloud | @brunocastel.com.br (domínio verificado) |
+
+**O que foi feito:**
+
+- Criação da VM SYNC-01 no Hyper-V (dedicada — recomendação Microsoft de não instalar no DC)
+- Configuração de IP fixo 10.0.0.20, DNS apontando pro DC-01
+- Ingresso no domínio lab.brunocastel.com.br
+- Habilitação do TLS 1.2 (requisito do Entra Connect no Server 2019)
+- Instalação do Microsoft Edge (necessário pro portal de MFA moderno)
+- Criação de conta organizacional com role Global Administrator no Entra ID
+- Instalação do Entra Connect v2 com configuração customizada
+- Adição de `brunocastel.com.br` como UPN suffix alternativo na floresta AD
+- Troca do UPN dos 5 usuários de `@lab.brunocastel.com.br` para `@brunocastel.com.br`
+- Configuração de filtragem por OU (apenas "Usuarios")
+- Sync inicial concluído com sucesso
+- 5 usuários sincronizados no Entra ID com status "Synced from on-premises"
+
+**Decisões de arquitetura relevantes:**
+
+- **VM dedicada pro Entra Connect:** O serviço roda um SQL LocalDB embutido que compete por recursos com AD DS, DNS e DHCP. Separar isola superfícies de ataque.
+- **Password Hash Sync (PHS):** Mais resiliente que Pass-through Authentication — funciona mesmo se o AD on-prem estiver fora do ar. Hashes replicados com cadeia MD4 → SHA256+salt.
+- **UPN suffix alternativo:** O domínio AD é `lab.brunocastel.com.br` mas o domínio verificado no Entra ID é `brunocastel.com.br`. Adicionei o suffix alternativo na floresta e troquei os UPNs dos usuários para garantir o mapeamento correto.
+- **SIDs em vez de nomes de grupo:** Windows Server PT-BR localiza nomes de grupos built-in ("Domain Admins" → "Administradores do Domínio"). Referenciar SIDs garante compatibilidade com qualquer idioma.
+
+---
+
 ## Roadmap
 
 | Fase | Descrição | Status |
@@ -178,15 +218,16 @@ terraform apply
 | 3 | File Server + Permissões NTFS | Concluída |
 | 4 | CLIENT-01 + GPOs + Validação | Concluída |
 | 5 | Infraestrutura Azure Base (Terraform) | Concluída |
-| 6 | VM AADC + Entra Connect v2 (Password Hash Sync) | Pendente |
+| 6 | SYNC-01 + Entra Connect v2 (Password Hash Sync + Seamless SSO) | Concluída |
 
 ## Tecnologias
 
 - **On-Premises:** Windows Server 2019, Hyper-V, Active Directory, DNS, DHCP, GPO, NTFS
 - **Estação:** Windows 11 Enterprise
-- **Cloud:** Microsoft Azure, Entra ID (Azure AD)
+- **Cloud:** Microsoft Azure, Entra ID, Entra Connect v2 (Password Hash Sync, Seamless SSO)
 - **IaC:** Terraform (azurerm provider)
 - **Networking:** Internal vSwitch, NAT, VNet, Subnet, NSG, Route Table
+- **Hybrid Identity:** Entra Connect v2, Password Hash Synchronization, Seamless SSO, UPN suffix routing
 
 ## Estrutura do Repositório
 
